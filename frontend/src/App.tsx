@@ -1,29 +1,26 @@
-import {useState} from 'react';
-import logo from './assets/images/logo-universal.png';
-import './App.css';
-import {Greet} from "../wailsjs/go/main/App";
+import Box from '@mui/material/Box';
 
-import Button from '@mui/material/Button';
+// import AppBar from './component/AppBar'
+import ToolBar from './component/ToolBar'
+import AppContent from './component/AppContent';
 
 function App() {
-    const [resultText, setResultText] = useState("Please enter your name below 👇");
-    const [name, setName] = useState('');
-    const updateName = (e: any) => setName(e.target.value);
-    const updateResultText = (result: string) => setResultText(result);
-
-    function greet() {
-        Greet(name).then(updateResultText);
-    }
-
     return (
-        <div id="App">
-            <img src={logo} id="logo" alt="logo"/>
-            <div id="result" className="result">{resultText}</div>
-            <div id="input" className="input-box">
-                <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text"/>
-                <Button onClick={greet} variant="contained">Greet</Button>;
-            </div>
-        </div>
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            border: '8px solid rgba(255, 255, 255, 0.45)',
+            // borderTop: '32px solid rgba(255, 255, 255, 0.45)',
+            backdropFilter: 'blur(147px);'
+        }}>
+            {/* <AppBar /> */}
+            <ToolBar />
+            <AppContent />
+        </Box>
     )
 }
 
