@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Box from '@mui/material/Box';
 
 export default function ToolBar() {
@@ -10,7 +11,8 @@ export default function ToolBar() {
             flexShrink: '0',
             width: '100%',
         }}>
-            good
+            <Link to="/">Home</Link>
+            <Link to="/other">Other</Link>
         </Box>
     )
 }

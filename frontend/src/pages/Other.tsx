@@ -1,13 +1,10 @@
 import {useState} from 'react';
 import {Greet} from "../../wailsjs/go/main/App";
-import {Routes, Route} from 'react-router-dom'
+
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 
-import Main from '../pages/Main';
-import Other from '../pages/Other';
-
-export default function AppContent() {
+export default function Other() {
     const [resultText, setResultText] = useState("Please enter your name below 👇");
     const [name, setName] = useState('');
     const updateName = (e: any) => setName(e.target.value);
@@ -26,10 +23,8 @@ export default function AppContent() {
             flexGrow: 1,
             width: '100%',
         }}>
-            <Routes>
-                <Route path="/" element={<Main />}></Route>    
-                <Route path="/other" element={<Other />}></Route>    
-            </Routes>
+            <div id="result" className="result">{resultText}</div>
+            Other
         </Box>
     )
 }

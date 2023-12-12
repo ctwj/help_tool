@@ -9,9 +9,11 @@ specifiers:
   '@mui/styled-engine-sc': 6.0.0-alpha.7
   '@types/react': ^18.0.17
   '@types/react-dom': ^18.0.6
+  '@types/react-router-dom': ^5.3.3
   '@vitejs/plugin-react': ^2.0.1
   react: ^18.2.0
   react-dom: ^18.2.0
+  react-router-dom: ^6.20.1
   styled-components: ^6.1.1
   typescript: ^4.6.4
   vite: ^3.0.7
@@ -23,8 +25,10 @@ dependencies:
   '@mui/icons-material': registry.npmmirror.com/@mui/icons-material/5.14.19_2gsgbyfzzzz6epdkq4earge33m
   '@mui/material': registry.npmmirror.com/@mui/material/5.14.20_zndb3gkd2ueh5js5aozlobqcxm
   '@mui/styled-engine-sc': registry.npmmirror.com/@mui/styled-engine-sc/6.0.0-alpha.7_styled-components@6.1.1
+  '@types/react-router-dom': registry.npmmirror.com/@types/react-router-dom/5.3.3
   react: registry.npmmirror.com/react/18.2.0
   react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
+  react-router-dom: registry.npmmirror.com/react-router-dom/6.20.1_biqbaboplfbrettd7655fr4n2y
   styled-components: registry.npmmirror.com/styled-components/6.1.1_biqbaboplfbrettd7655fr4n2y
 
 devDependencies:
@@ -844,6 +848,19 @@ packages:
     version: 2.11.8
     dev: false
 
+  registry.npmmirror.com/@remix-run/router/1.13.1:
+    resolution: {integrity: sha512-so+DHzZKsoOcoXrILB4rqDkMDy7NLMErRdOxvzvOKb507YINKUP4Di+shbTZDhSE/pBZ+vr7XGIpcOO0VLSA+Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@remix-run/router/-/router-1.13.1.tgz}
+    name: '@remix-run/router'
+    version: 1.13.1
+    engines: {node: '>=14.0.0'}
+    dev: false
+
+  registry.npmmirror.com/@types/history/4.7.11:
+    resolution: {integrity: sha512-qjDJRrmvBMiTx+jyLxvLfJU7UznFuokDv4f3WRuriHKERccVpFU+8XMQUAbDzoiJCsmexxRExQeMwwCdamSKDA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/history/-/history-4.7.11.tgz}
+    name: '@types/history'
+    version: 4.7.11
+    dev: false
+
   registry.npmmirror.com/@types/parse-json/4.0.2:
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/parse-json/-/parse-json-4.0.2.tgz}
     name: '@types/parse-json'
@@ -862,6 +879,25 @@ packages:
     dependencies:
       '@types/react': registry.npmmirror.com/@types/react/18.2.43
     dev: true
+
+  registry.npmmirror.com/@types/react-router-dom/5.3.3:
+    resolution: {integrity: sha512-kpqnYK4wcdm5UaWI3fLcELopqLrHgLqNsdpHauzlQktfkHL3npOSwtj1Uz9oKBAzs7lFtVkV8j83voAz2D8fhw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/react-router-dom/-/react-router-dom-5.3.3.tgz}
+    name: '@types/react-router-dom'
+    version: 5.3.3
+    dependencies:
+      '@types/history': registry.npmmirror.com/@types/history/4.7.11
+      '@types/react': registry.npmmirror.com/@types/react/18.2.43
+      '@types/react-router': registry.npmmirror.com/@types/react-router/5.1.20
+    dev: false
+
+  registry.npmmirror.com/@types/react-router/5.1.20:
+    resolution: {integrity: sha512-jGjmu/ZqS7FjSH6owMcD5qpq19+1RS9DeVRqfl1FeBMxTDQAGwlMWOcs52NDoXaNKyG3d1cYQFMs9rCrb88o9Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/react-router/-/react-router-5.1.20.tgz}
+    name: '@types/react-router'
+    version: 5.1.20
+    dependencies:
+      '@types/history': registry.npmmirror.com/@types/history/4.7.11
+      '@types/react': registry.npmmirror.com/@types/react/18.2.43
+    dev: false
 
   registry.npmmirror.com/@types/react-transition-group/4.4.10:
     resolution: {integrity: sha512-hT/+s0VQs2ojCX823m60m5f0sL5idt9SO6Tj6Dg+rdphGPIeJbJ6CxvBYkgkGKrYeDjvIpKTR38UzmtHJOGW3Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/react-transition-group/-/react-transition-group-4.4.10.tgz}
@@ -1608,6 +1644,35 @@ packages:
     version: 0.14.0
     engines: {node: '>=0.10.0'}
     dev: true
+
+  registry.npmmirror.com/react-router-dom/6.20.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-npzfPWcxfQN35psS7rJgi/EW0Gx6EsNjfdJSAk73U/HqMEJZ2k/8puxfwHFgDQhBGmS3+sjnGbMdMSV45axPQw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react-router-dom/-/react-router-dom-6.20.1.tgz}
+    id: registry.npmmirror.com/react-router-dom/6.20.1
+    name: react-router-dom
+    version: 6.20.1
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+    dependencies:
+      '@remix-run/router': registry.npmmirror.com/@remix-run/router/1.13.1
+      react: registry.npmmirror.com/react/18.2.0
+      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
+      react-router: registry.npmmirror.com/react-router/6.20.1_react@18.2.0
+    dev: false
+
+  registry.npmmirror.com/react-router/6.20.1_react@18.2.0:
+    resolution: {integrity: sha512-ccvLrB4QeT5DlaxSFFYi/KR8UMQ4fcD8zBcR71Zp1kaYTC5oJKYAp1cbavzGrogwxca+ubjkd7XjFZKBW8CxPA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react-router/-/react-router-6.20.1.tgz}
+    id: registry.npmmirror.com/react-router/6.20.1
+    name: react-router
+    version: 6.20.1
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      '@remix-run/router': registry.npmmirror.com/@remix-run/router/1.13.1
+      react: registry.npmmirror.com/react/18.2.0
+    dev: false
 
   registry.npmmirror.com/react-transition-group/4.4.5_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react-transition-group/-/react-transition-group-4.4.5.tgz}
