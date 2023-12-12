@@ -23,6 +23,7 @@ export default function ToolBar() {
             <Typography 
                 variant="h6" 
                 color={isActive ? 'secondary' : 'inherit'}
+                style={{cursor:'pointer'}}
                 component="div" 
                 onClick={() => toRouter(to)}>
                 {name}

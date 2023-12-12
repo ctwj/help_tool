@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Greet} from "../../wailsjs/go/main/App";
+import {Greet} from "../../../wailsjs/go/main/App";
 
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';

@@ -4,8 +4,8 @@ import {Routes, Route} from 'react-router-dom'
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 
-import Main from '../pages/Main';
-import Other from '../pages/Other';
+import Main from '../pages/main/Main';
+import Other from '../pages/other/Other';
 
 export default function AppContent() {
     const [resultText, setResultText] = useState("Please enter your name below 👇");
@@ -25,6 +25,7 @@ export default function AppContent() {
             justifyContent: 'start',
             flexGrow: 1,
             width: '100%',
+            height: '100%',
         }}>
             <Routes>
                 <Route path="/" element={<Main />}></Route>    
