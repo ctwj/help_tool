@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom'
 
 import {
     Typography, Box,
@@ -7,6 +8,7 @@ import {
 } from '@mui/material';
 import { PlayArrow as PlayArrowIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles';
+import { StartProxy } from '../../../wailsjs/go/proxy/Proxy'
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -15,6 +17,7 @@ interface TabPanelProps {
 }
 
 function TabPanel(props: TabPanelProps) {
+    const location = useLocation();
     const { children, value, index, ...other } = props;
 
     return (
@@ -101,14 +104,15 @@ export default function Main() {
             
             <Zoom
                 key={fab.color}
-                in={true}
+                in={location.pathname === '/'}
                 timeout={transitionDuration}
                 style={{
                     transitionDelay: `${transitionDuration.exit}ms`,
                 }}
                 unmountOnExit
                 >
-                <Fab sx={fab.sx} aria-label={fab.label} color={fab.color}>
+                <Fab sx={fab.sx} aria-label={fab.label} color={fab.color}
+                    onClick={StartProxy}>
                     {fab.icon}
                 </Fab>
             </Zoom>

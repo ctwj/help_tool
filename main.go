@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"helptools/internal/service"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -26,9 +27,7 @@ func main() {
 
 		BackgroundColour: &options.RGBA{R: 255, G: 255, B: 0, A: 0},
 		OnStartup:        app.startup,
-		Bind: []interface{}{
-			app,
-		},
+		Bind:             append([]interface{}{app}, service.Bind()...),
 	})
 
 	if err != nil {

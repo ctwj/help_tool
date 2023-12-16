@@ -1,4 +1,4 @@
-module changeme
+module helptools
 
 go 1.18
 
