@@ -30,7 +30,7 @@ func (p *TransparentProxy) PrintRequest(request *http.Request) {
 }
 
 func (p *TransparentProxy) PrintRequestData(body []byte, index uint64) {
-	fmt.Printf("--%d-----------------------\n", index)
+	fmt.Printf("--%d-----------------------Request\n", index)
 	fmt.Printf("%s\n", string(body))
 	fmt.Printf("--%d-----------------------\n", index)
 }
@@ -45,9 +45,19 @@ func (p *TransparentProxy) GetResponseData(response *http.Response) []byte {
 	return body
 }
 
-func (p *TransparentProxy) PrintResponse(response *http.Response, index uint64) {
-	body, _ := io.ReadAll(response.Body)
-	fmt.Printf("--%d-----------------------\n", index)
+func (p *TransparentProxy) PrintResponse(body []byte, index uint64) {
+	fmt.Printf("--%d-----------------------Response\n", index)
+
 	fmt.Printf("%s\n", string(body))
 	fmt.Printf("--%d-----------------------\n", index)
+}
+
+func (p *TransparentProxy) GetResponseBody(response *http.Response) []byte {
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error reading request body:", err)
+		return []byte(fmt.Sprintf("Error reading request body: %v", err))
+	}
+	return body
 }

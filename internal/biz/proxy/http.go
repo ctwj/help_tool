@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -69,6 +69,22 @@ a3JN6WVxLlgO77stKmzJ51kDK7voY45RFSBxZvoBYkTQHHkX6kiThggSGKtWnX+S
 RFR9z9eT7VNxHRoZ7YwPIk3h8A==
 -----END PRIVATE KEY-----`
 
+func getTLSConfig(certPEM, keyPEM string) (*tls.Config, error) {
+	// 创建一个空的 tls.Config
+	config := &tls.Config{}
+
+	// 解析证书和私钥
+	tlsCert, err := tls.X509KeyPair([]byte(certPEM), []byte(keyPEM))
+	if err != nil {
+		return nil, err
+	}
+
+	// 将证书和私钥设置到配置中
+	config.Certificates = []tls.Certificate{tlsCert}
+
+	return config, nil
+}
+
 type TransparentProxy struct {
 	listenerHTTP  net.Listener
 	listenerHTTPS net.Listener
@@ -76,6 +92,7 @@ type TransparentProxy struct {
 	requestHook   RequestInterceptor // 添加 requestHook 字段
 	responseHook  ResponseInterceptor
 	proxyIPs      []string
+	tlsConfig     *tls.Config
 }
 
 type RequestInterceptor func(req *http.Request) *http.Request
@@ -83,9 +100,11 @@ type ResponseInterceptor func(req *http.Response) *http.Response
 
 func NewTransparentProxy(destination string) *TransparentProxy {
 	ips, _ := getAllLocalIPs()
+	tlsConfig, _ := getTLSConfig(cert, key)
 	return &TransparentProxy{
 		destination: destination,
 		proxyIPs:    ips,
+		tlsConfig:   tlsConfig,
 	}
 }
 
@@ -221,40 +240,63 @@ func (p *TransparentProxy) handleClient(clientConn net.Conn, isHTTPS bool) {
 
 func (p *TransparentProxy) handleHTTPS(clientConn net.Conn, clientHello []byte, request *http.Request, index uint64) {
 
-	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true,
-	}
+	// 打印请求内容
+	fmt.Println("Received request from client:")
+	fmt.Println(request.Method, request.URL.String())
+	request.Header.Write(os.Stdout)
+
+	// 获取实际目标地址
 	destination := request.Host
 	if !strings.Contains(request.Host, ":") {
-		destination = fmt.Sprintf("%s:%s", request.Host, "443")
+		destination = fmt.Sprintf("%s:%s", request.Host, "443") // 默认使用 HTTPS 的端口 443
 	}
+	targetURL := fmt.Sprintf("https://%s%s", destination, request.URL.String())
+	fmt.Println("Target URL:", targetURL)
 
-	fmt.Println(destination)
-	remoteConn, err := tls.Dial("tcp", destination, tlsConfig)
+	// 发起连接到实际目标地址
+	remoteConn, err := tls.Dial("tcp", destination, p.tlsConfig)
 	if err != nil {
-		log.Printf("handleHTTPs: %d Failed to connect to the destination server: %v", index, err)
+		log.Printf("Failed to connect to the destination server: %v", err)
 		return
 	}
 	defer remoteConn.Close()
 
-	// Send client hello to the destination server
-	_, err = remoteConn.Write(clientHello)
+	// 发送客户端的原始请求
+	err = request.Write(remoteConn)
 	if err != nil {
-		log.Printf("handleHTTPs: Failed to send client hello to the destination server: %v", err)
+		log.Printf("Failed to send client request to the destination server: %v", err)
 		return
 	}
 
-	// Forward data between client and server
-	go func() {
-		_, err := io.Copy(remoteConn, clientConn)
-		if err != nil {
-			log.Printf("handleHTTPs: Error while copying data from client to server: %v", err)
-		}
-	}()
-
-	_, err = io.Copy(clientConn, remoteConn)
+	// 读取目标服务器的响应
+	remoteResp, err := http.ReadResponse(bufio.NewReader(remoteConn), request)
 	if err != nil {
-		log.Printf("handleHTTPs: Error while copying data from server to client: %v", err)
+		log.Printf("Failed to read response from the destination server: %v", err)
+		return
+	}
+	defer remoteResp.Body.Close()
+
+	// 打印响应内容
+	fmt.Println("Received response from server:")
+	fmt.Println(remoteResp.Status)
+	remoteResp.Header.Write(os.Stdout)
+
+	// 读取实际目标地址返回的内容
+	responseBody, err := io.ReadAll(remoteResp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", err)
+		return
+	}
+
+	// 修改返回内容
+	modifiedResponse := strings.ReplaceAll(string(responseBody), "code", "CXXX")
+	fmt.Println("Modified response:", modifiedResponse)
+
+	// 将修改后的内容写回到 clientConn 返回给浏览器
+	_, err = clientConn.Write([]byte(modifiedResponse))
+	if err != nil {
+		log.Printf("Failed to write response to client: %v", err)
+		return
 	}
 }
 
@@ -269,79 +311,127 @@ func (p *TransparentProxy) localCheck(domain string) bool {
 }
 
 func (p *TransparentProxy) handleHTTP(clientConn net.Conn, clientHello []byte, request *http.Request, index uint64) {
-
-	// 获取实际目标地址，从请求中获取HOST，如果没有附带端口添加默认端口
+	// 从 clientConn 获取请求内容
+	clientRequest := request
 	destination := request.Host
 	if !strings.Contains(request.Host, ":") {
 		destination = fmt.Sprintf("%s:%s", request.Host, "80")
 	}
 
-	// 开始连接
+	// 打印请求内容
+	fmt.Println("Received request from client:")
+	fmt.Println(clientRequest.Method, clientRequest.URL.String())
+	clientRequest.Header.Write(os.Stdout)
+
+	// 获取实际目标地址
+	targetURL := fmt.Sprintf("http://%s%s", destination, clientRequest.URL.String())
+	fmt.Println("Target URL:", targetURL)
+
+	// 复制原始请求的主体
+	var requestBody bytes.Buffer
+	_, err := io.Copy(&requestBody, clientRequest.Body)
+	if err != nil {
+		log.Printf("Failed to read request body: %v", err)
+		return
+	}
+	clientRequest.Body.Close()
+
+	// 创建新的请求对象，包含原始请求的主体
+	newRequest, err := http.NewRequest(clientRequest.Method, targetURL, &requestBody)
+	if err != nil {
+		log.Printf("Failed to create new request: %v", err)
+		return
+	}
+	newRequest.Header = clientRequest.Header
+
+	// 发起请求到实际目标地址
+	client := &http.Client{}
+	remoteResp, err := client.Do(newRequest)
+	if err != nil {
+		log.Printf("Failed to send request to target URL: %v", err)
+		return
+	}
+	defer remoteResp.Body.Close()
+
+	// 读取实际目标地址返回的内容
+	responseBody, err := io.ReadAll(remoteResp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", err)
+		return
+	}
+
+	// 修改返回内容
+	modifiedResponse := strings.ReplaceAll(string(responseBody), "code", "CXXX")
+	fmt.Println("Modified response:", modifiedResponse)
+
+	// 将修改后的内容写回到 clientConn 返回给浏览器
+	_, err = clientConn.Write([]byte(modifiedResponse))
+	if err != nil {
+		log.Printf("Failed to write response to client: %v", err)
+		return
+	}
+
+}
+
+func (p *TransparentProxy) handleHTTP1(clientConn net.Conn, clientHello []byte, request *http.Request, index uint64) {
+	// 从 clientConn 获取请求内容
+	clientRequest := request
+	destination := request.Host
+	if !strings.Contains(request.Host, ":") {
+		destination = fmt.Sprintf("%s:%s", request.Host, "80")
+	}
+
+	// 打印请求内容
+	fmt.Println("Received request from client:")
+	fmt.Println(clientRequest.Method, clientRequest.URL.String())
+	clientRequest.Header.Write(os.Stdout)
+
+	// 获取实际目标地址
+	targetURL := clientRequest.URL.String()
+	fmt.Println("Target URL:", targetURL)
+
+	// 发起请求到实际目标地址
+	fmt.Println("Connecting to target URL...")
 	remoteConn, err := net.Dial("tcp", destination)
 	if err != nil {
-		log.Printf("handleHTTP: Failed to connect to the destination server: %v", err)
+		log.Printf("Failed to connect to target URL: %v", err)
 		return
 	}
 	defer remoteConn.Close()
 
-	// 向目标服务器发送客户端的原始请求
-	_, err = remoteConn.Write(clientHello)
+	// 将请求发送到实际目标地址
+	fmt.Println("Sending request to target URL...")
+	err = clientRequest.Write(remoteConn)
 	if err != nil {
-		log.Printf("handleHTTP: Failed to send client hello to the destination server: %v", err)
+		log.Printf("Failed to send request to target URL: %v", err)
 		return
 	}
 
-	// 将目标服务器的返回数据直接copy 到客户端请求中
-	go func() {
-		_, err := io.Copy(remoteConn, clientConn)
-		if err != nil {
-			log.Printf("handleHTTP: %d Error while copying data from client to server: %v", index, err)
-		}
-	}()
-
-	// 创建一个 http.Request 对象
-	req, err := http.ReadRequest(bufio.NewReader(clientConn))
-	if err != nil && !errors.Is(err, io.EOF) {
-		if !strings.Contains(err.Error(), "use of closed network connection") {
-			log.Printf("handleHTTP: 读取客户端请求失败：%v", err)
-		}
-		return
-	}
-
-	// 读取服务器响应
-	response, err := http.ReadResponse(bufio.NewReader(remoteConn), req)
-	if err != nil && !errors.Is(err, io.EOF) {
-		log.Printf("handleHTTP: 读取服务器响应失败：%v", err)
-		return
-	}
-	defer response.Body.Close()
-
-	// 调用拦截器钩子函数来修改请求
-	if p.responseHook != nil {
-		response = p.responseHook(response)
-	} else {
-		log.Print("requestHook is nil")
-	}
-
-	responseBody := p.GetResponseData(response)
-
-	p.PrintResponse(response, index)
-
-	_, err = clientConn.Write(responseBody)
+	// 从 remoteConn 中获取实际目标地址返回的内容
+	fmt.Println("Reading response from target URL...")
+	remoteResp, err := http.ReadResponse(bufio.NewReader(remoteConn), clientRequest)
 	if err != nil {
-		log.Printf("handleHTTP: Failed to send response to the client: %v", err)
+		log.Printf("Failed to read response from target URL: %v", err)
+		return
+	}
+	defer remoteResp.Body.Close()
+
+	// 读取实际目标地址返回的内容
+	responseBody, err := io.ReadAll(remoteResp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", err)
 		return
 	}
 
-	// // 将响应从服务器复制到客户端
-	// _, err = io.Copy(clientConn, remoteConn)
-	// if err != nil {
-	// 	log.Printf("handleHTTP: Error while copying data from server to client: %v", err)
-	// }
-	// 将修改后的响应写回客户端
-	// err = response.Write(clientConn)
-	// if err != nil {
-	// 	log.Printf("handleHTTP: Failed to write modified response to the client: %v", err)
-	// 	return
-	// }
+	// 修改返回内容
+	modifiedResponse := strings.ReplaceAll(string(responseBody), "code", "XXXX")
+	fmt.Println("Modified response:", modifiedResponse)
+
+	// 将修改后的内容写回到 clientConn 返回给浏览器
+	fmt.Println("Writing response to client...")
+	_, err = clientConn.Write([]byte(modifiedResponse))
+	if err != nil {
+		log.Printf("Failed to write response to client: %v", err)
+		return
+	}
 }
